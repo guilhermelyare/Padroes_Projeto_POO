@@ -8,6 +8,7 @@ import java.util.List;
 public class WebSearchModel {
     private final File sourceFile;
     private final List<QueryObserver> observers = new ArrayList<>();
+    private final List<QueryFilterStrategy> filterStrategies = new ArrayList<>();
 
     public interface QueryObserver {
         void onQuery(String query);
@@ -31,13 +32,19 @@ public class WebSearchModel {
         }
     }
 
-    public void addQueryObserver(QueryObserver queryObserver) {
+    public void addQueryObserver(QueryObserver queryObserver, QueryFilterStrategy filterStrategy) {
         observers.add(queryObserver);
+        filterStrategies.add(filterStrategy);
     }
 
     private void notifyAllObservers(String line) {
         for (QueryObserver obs : observers) {
-            obs.onQuery(line);
+            
+            QueryFilterStrategy strategy = filterStrategies.get(observers.indexOf(obs));
+
+            if (strategy.filter(line)) {
+                obs.onQuery(line);
+            }
         }
     }
 }
